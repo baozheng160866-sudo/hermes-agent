@@ -77,9 +77,17 @@ if [ ! -f "$HERMES_HOME/config.yaml" ]; then
 fi
 
 # SOUL.md
-if [ ! -f "$HERMES_HOME/SOUL.md" ]; then
+# SOUL.md — three sources of truth (first wins):
+#   1. HERMES_PERSONALITY env var (allows per-service customization on Railway)
+#   2. Existing SOUL.md on volume (preserved across restarts)
+#   3. Default docker/SOUL.md from the image
+if [ -n "$HERMES_PERSONALITY" ]; then
+    printf '%s' "$HERMES_PERSONALITY" > "$HERMES_HOME/SOUL.md"
+    echo "SOUL.md written from HERMES_PERSONALITY env var (${#HERMES_PERSONALITY} chars)"
+elif [ ! -f "$HERMES_HOME/SOUL.md" ]; then
     cp "$INSTALL_DIR/docker/SOUL.md" "$HERMES_HOME/SOUL.md"
 fi
+
 
 # auth.json: bootstrap from env on first boot only.  Used by orchestrators
 # (e.g. provisioning a Hermes VPS from an account-management service) that
